@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -14,9 +15,13 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     public Member join(String username, String password, String nickname) {
+
+        UUID uuid = UUID.randomUUID(); // 겹치지않고 고유한 랜덤값을 길게 만들어 줌 (복잡한 난수생성)
+
         Member member = Member.builder()
                 .username(username)
                 .password(password)
+                .password2(uuid.toString())
                 .nickname(nickname)
                 .build();
 
@@ -33,5 +38,9 @@ public class MemberService {
 
     public Optional<Member> findById(long authorId) {
         return memberRepository.findById(authorId);
+    }
+
+    public Optional<Member> findByPassword2(String password2) {
+        return memberRepository.findByPassword2(password2);
     }
 }
