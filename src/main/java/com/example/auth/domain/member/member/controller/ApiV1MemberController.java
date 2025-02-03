@@ -3,6 +3,7 @@ package com.example.auth.domain.member.member.controller;
 import com.example.auth.domain.member.member.dto.MemberDto;
 import com.example.auth.domain.member.member.entity.Member;
 import com.example.auth.domain.member.member.service.MemberService;
+import com.example.auth.global.Rq;
 import com.example.auth.global.dto.RsData;
 import com.example.auth.global.exception.ServiceException;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class ApiV1MemberController {
 
     private final MemberService memberService;
+    private final Rq rq;
 
     record JoinReqBody(@NotBlank @Length(min = 3) String username,
                        @NotBlank @Length(min = 3) String password,
@@ -42,25 +44,44 @@ public class ApiV1MemberController {
         );
     }
 
+
     record LoginReqBody(@NotBlank @Length(min = 3) String username,
-                       @NotBlank @Length(min = 3) String password) {
+                        @NotBlank @Length(min = 3) String password) {
+    }
+
+    record LoginResBody(MemberDto memberDto, String apiKey) {
     }
 
     @PostMapping("/login")
-    public RsData<String> login(@RequestBody @Valid LoginReqBody body) {
+    public RsData<LoginResBody> login(@RequestBody @Valid LoginReqBody body) {
 
         Member actor = memberService.findByUsername(body.username())
-                .orElseThrow(() -> new ServiceException("400-2", "아이디 또는 비밀번호가 일치하지 않습니다."));
+                .orElseThrow(() -> new ServiceException("401-2", "아이디 또는 비밀번호가 일치하지 않습니다."));
 
-        if (!actor.getPassword().equals(body.password)) {
-            throw new ServiceException("400-2", "아이디 또는 비밀번호가 일치하지 않습니다.");
+        if (!actor.getPassword().equals(body.password())) {
+            throw new ServiceException("401-2", "아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
         return new RsData<>(
                 "200-1",
-                "%s님 환영합니다.".formatted(actor.getUsername()),
-                actor.getApiKey()
+                "%s님 환영합니다.".formatted(actor.getNickname()),
+                new LoginResBody(
+                        new MemberDto(actor),
+                        actor.getApiKey()
+                )
         );
     }
+
+    @GetMapping("/me")
+    public RsData<MemberDto> me() {
+        Member actor = rq.getAuthenticatedActor();
+
+        return new RsData<>(
+                "200-1",
+                "내 정보 조회가 완료되었습니다.",
+                new MemberDto(actor)
+        );
+    }
+
 
 }

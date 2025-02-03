@@ -40,7 +40,7 @@ public class MemberService {
         return memberRepository.findById(authorId);
     }
 
-    public Optional<Member> findByPassword2(String apiKey) {
+    public Optional<Member> findByApiKey(String apiKey) {
         return memberRepository.findByApiKey(apiKey);
     }
 }
