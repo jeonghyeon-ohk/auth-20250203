@@ -19,4 +19,8 @@ public class Comment extends BaseTime {
     @ManyToOne(fetch = FetchType.LAZY)
     private Post post;
     private String content;
+
+    public void modify(String content) {
+        this.content = content;
+    }
 }
